@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\DTO\Controller\Request\CreateCommentRequest;
 use App\Http\Services\CommentServiceInterface;
 use App\Http\Services\MessagingServiceInterface;
+use App\Http\Services\UserServiceInterface;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -23,7 +24,8 @@ class CommentController extends Controller
     public function __construct(
         private CommentServiceInterface $commentService,
         private SerializerInterface $serializer,
-        private MessagingServiceInterface $messagingService
+        private MessagingServiceInterface $messagingService,
+        private UserServiceInterface $userService,
     ) { }
 
     /**
@@ -100,7 +102,7 @@ class CommentController extends Controller
         $comment = $this->commentService->create($createCommentRequest);
         $data    = $this->serializer->serialize($comment, JsonEncoder::FORMAT);
 
-        $user = User::find($comment->getAuthorId());
+        $user = $this->userService->getById($comment->getAuthorId());
         $this->messagingService->send(
             $user->email,
             [
